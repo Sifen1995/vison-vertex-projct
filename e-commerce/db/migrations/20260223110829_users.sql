@@ -1,0 +1,24 @@
+-- migrate:up
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL, 
+    password TEXT NOT NULL,
+    role_id INTEGER NOT NULL REFERENCES roles(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- migrate:down
+
+DROP TABLE IF EXISTS users;
+
+
+
+
+
+
+
+
+

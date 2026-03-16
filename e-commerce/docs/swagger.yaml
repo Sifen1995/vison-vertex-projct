@@ -1,0 +1,1017 @@
+basePath: /api
+definitions:
+  dto.OrderItemRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  dto.OrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/dto.OrderItemRequest'
+        type: array
+    required:
+    - items
+    type: object
+  dto.ProductAddRequest:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - description
+    - name
+    - price
+    type: object
+  dto.UserLoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.UserLoginResponce:
+    properties:
+      AccessToken:
+        type: string
+      RefreshToken:
+        type: string
+      RoleId:
+        type: integer
+    type: object
+  dto.UserRegisterRequestDTO:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@my-ecommerce.local
+    name: API Support
+  description: A basic CRUD API with JWT Authentication.
+  termsOfService: http://swagger.io/terms/
+  title: my-ecommerce
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT access token and refresh token
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserLoginResponce'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      summary: User Login
+      tags:
+      - users
+  /auth/logout:
+    post:
+      description: Invalidate the current user session and refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - auth
+  /auth/mfa/setup:
+    post:
+      consumes:
+      - application/json
+      description: Generate MFA secret and QR code for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              qr_code:
+                type: string
+              secret:
+                type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Initiate MFA setup
+      tags:
+      - auth
+  /auth/mfa/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify the provided MFA code and enable MFA for the authenticated
+        user
+      parameters:
+      - description: 6-digit verification code
+        in: body
+        name: payload
+        required: true
+        schema:
+          properties:
+            code:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              access_token:
+                type: string
+              refresh_token:
+                type: string
+              user_role:
+                type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verify MFA code and enable MFA
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new access token using a valid refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: payload
+        required: true
+        schema:
+          properties:
+            refresh_token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              access_token:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account in the system
+      parameters:
+      - description: User Registration Data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRegisterRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            properties:
+              data:
+                type: object
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+              timestamp:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+  /auth/upgrade-to-seller:
+    patch:
+      consumes:
+      - application/json
+      description: Upgrade the authenticated user to a seller role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserLoginResponce'
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upgrade user to seller
+      tags:
+      - auth
+  /orders/{id}/get-one:
+    get:
+      description: Retrieve an order by its ID for the authenticated user
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get order by ID
+      tags:
+      - orders
+  /orders/create:
+    post:
+      consumes:
+      - application/json
+      description: Place a new order for the authenticated user
+      parameters:
+      - description: Order data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create order
+      tags:
+      - orders
+  /payments/{order_id}:
+    post:
+      description: Initialize Stripe payment for an order and return client secret
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Stripe payment
+      tags:
+      - payments
+  /payments/{order_id}/chapa/initialize:
+    post:
+      consumes:
+      - application/json
+      description: Initialize Chapa payment for an order and return checkout URL
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: integer
+      - description: Payment amount
+        in: body
+        name: payload
+        required: true
+        schema:
+          properties:
+            amount:
+              type: number
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              checkout_url:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Initialize Chapa payment
+      tags:
+      - payments
+  /payments/chapa-webhook:
+    get:
+      description: Receive and process Chapa webhook events and redirect callbacks
+      produces:
+      - application/json
+      responses: {}
+      summary: Chapa webhook
+      tags:
+      - webhooks
+    post:
+      description: Receive and process Chapa webhook events and redirect callbacks
+      produces:
+      - application/json
+      responses: {}
+      summary: Chapa webhook
+      tags:
+      - webhooks
+  /payments/stripe-webhook:
+    post:
+      consumes:
+      - application/json
+      description: Receive and process Stripe webhook events
+      produces:
+      - application/json
+      responses: {}
+      summary: Stripe webhook
+      tags:
+      - webhooks
+  /products/{id}/salestat:
+    patch:
+      consumes:
+      - application/json
+      description: Update sale status of a product (seller only)
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sale status (on_sale, sold_out)
+        in: body
+        name: payload
+        required: true
+        schema:
+          properties:
+            sale_status:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update product sale status
+      tags:
+      - products
+  /products/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update approval status of a product (admin only)
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New status (approved, disapproved, pending)
+        in: body
+        name: payload
+        required: true
+        schema:
+          properties:
+            status:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update product status
+      tags:
+      - products
+  /products/add:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product as the authenticated seller
+      parameters:
+      - description: Product data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductAddRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add new product
+      tags:
+      - products
+  /products/get:
+    get:
+      description: Get all products visible to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              status:
+                type: integer
+              success:
+                type: boolean
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List products
+      tags:
+      - products
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer " followed by your JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

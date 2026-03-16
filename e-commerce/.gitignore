@@ -1,0 +1,27 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+main
+
+# Docker & Environment
+.env
+docker-compose.override.yml
+mysql_data/
+pg_data/
+
+# Dependencies
+vendor/
+go.sum
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
