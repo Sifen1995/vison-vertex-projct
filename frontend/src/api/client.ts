@@ -47,6 +47,11 @@ export const clearTokens = () => {
   localStorage.removeItem('refresh_token')
 }
 
+export const setTokens = (access: string, refresh: string) => {
+  setAccessToken(access)
+  setRefreshToken(refresh)
+}
+
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {

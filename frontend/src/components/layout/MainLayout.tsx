@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { Header } from './Header';
 import { Footer } from './Footer';
 
-export function MainLayout() {
+export default function MainLayout() {
   return (
     <Box
       sx={{

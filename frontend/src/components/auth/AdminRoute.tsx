@@ -6,7 +6,7 @@ interface AdminRouteProps {
   children: React.ReactNode;
 }
 
-export function AdminRoute({ children }: AdminRouteProps) {
+export default function AdminRoute({ children }: AdminRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 

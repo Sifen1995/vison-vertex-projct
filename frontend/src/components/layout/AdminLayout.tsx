@@ -38,7 +38,7 @@ const navItems = [
   { label: 'Orders', path: '/admin/orders', icon: <Receipt /> },
 ];
 
-export function AdminLayout() {
+export default function AdminLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
